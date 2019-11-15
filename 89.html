@@ -1,0 +1,879 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="pragma" content="no-cache">
+    <meta http-equiv="cache-control" content="no-cache">
+    <meta http-equiv="expires" content="0">
+    <title>24 Card Game</title>
+    <style type="text/css">
+        /*#div1 {width:198px; height:66px;padding:10px;border:1px solid #aaaaaa;}*/
+    </style>
+    <script src="jquery/jquery-1.11.1.min.js" type="text/javascript"></script>
+    <script type="text/javascript">
+        var cs, cxt;
+        var cswidth = 800, csheight = 1400, speb = 100;
+        spes = 40, cardw = 250, cardh = 250;
+        var opewidth = 600, opeheight = 150, opefont = 110, btnwidth = 150, btnheight = 100, results = 380;
+        var startoffX, startoffY;
+        var oprs = "＋", card = [];
+        var toucharea = 0;//0:out 1:renew 2:answer 3:+ 4:- 5:* 6:/ 7 card1 8 card2 9 card3 10 card4 11 reset 12 unsolution
+        var opr = [];
+        var cardpos = [];
+        var started = false;
+        var gamestatus = 0; //0:over 1:open
+        var intright = 0, intwrong = 0;
+        var touchobj;
+        var intclock;
+        var intsuc = 0;
+        var fgclr = 'blue',scorefgclr="red",cardbgclrs='pink',cardbgclre='blue',cardfgclr ='white',cardfgswclr='grey',passfgclr='gold',passfgswclr='grey',
+                opebgclrs='rgb(192, 80, 77)',opebgclrm='rgb(155, 187, 89)',opebgclre='rgb(128, 100, 162)', opefgclr ='black', opesfgclr ='red',opeswclr="gray",
+                btnfgclr1='red',btnfgclr2='yellow',btnfgclr3='yellow',btnfgclr4='red',
+                newbgclr="gray",resetbgclr="blue",unsbgclr="gray",ansbgclr="blue",
+                resultfgclr='black',resultbgclr='orange';
+        var opegridfgclr="white", facefgclr='black',facebgclr="yellow";
+        var skinmode = 0;
+
+        function getparam(name) {
+            var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)", "i");
+            var r = window.location.search.substr(1).match(reg);
+            if (r != null) return unescape(r[2]); return null;
+        }
+
+        function setclrmode(intmode) {
+            switch (intmode) {
+                case 0:
+                    fgclr = 'blue',scorefgclr="red",cardbgclrs='pink',cardbgclre='blue',cardfgclr ='white',cardfgswclr='grey',passfgclr='gold',passfgswclr='grey',
+                            opebgclrs='rgb(192, 80, 77)',opebgclrm='rgb(155, 187, 89)',opebgclre='rgb(128, 100, 162)', opefgclr ='black', opesfgclr ='red',opeswclr="gray",
+                            btnfgclr1='red',btnfgclr2='yellow',btnfgclr3='yellow',btnfgclr4='red',
+                            newbgclr="gray",resetbgclr="blue",unsbgclr="gray",ansbgclr="blue",
+                            resultfgclr='black',resultbgclr='orange';
+                    opegridfgclr="white", facefgclr='black',facebgclr="yellow";
+
+                    break;
+                case 1:
+                    fgclr = 'white',scorefgclr="white",cardbgclrs='gray',cardbgclre='black',cardfgclr ='white',cardfgswclr='grey',passfgclr='gold',passfgswclr='grey',
+                            opebgclrs='rgb(30, 30, 30)',opebgclrm='rgb(60, 60, 60)',opebgclre='rgb(128, 128, 128)', opefgclr ='white', opesfgclr ='red',opeswclr="rgb(170, 170, 170)",
+                            btnfgclr1='rgb(250, 250, 250)',btnfgclr2='rgb(128, 128, 128)',btnfgclr3='rgb(128, 128, 128)',btnfgclr4='rgb(250, 250, 250)',
+                            newbgclr="rgb(30, 30, 30)",resetbgclr="rgb(60, 60, 60)",unsbgclr="rgb(30, 30, 30)",ansbgclr="rgb(128, 128, 128)",
+                            resultfgclr='white',resultbgclr='gray';
+                    opegridfgclr="white", facefgclr='black',facebgclr="gray";
+                    break;
+                case 2:
+                    fgclr = 'yellow',scorefgclr="black",cardbgclrs='gold',cardbgclre='GoldenRod',cardfgclr ='black',cardfgswclr='grey',passfgclr='gold',passfgswclr='grey',
+                            opebgclrs='gold',opebgclrm='GoldenRod',opebgclre='Khaki', opefgclr ='black', opesfgclr ='red',opeswclr="gray",
+                            btnfgclr1='black',btnfgclr2='blue',btnfgclr3='blue',btnfgclr4='black',
+                            newbgclr="SandyBrown",resetbgclr="Pink",unsbgclr="SandyBrown",ansbgclr="Pink",
+                            resultfgclr='black',resultbgclr='Wheat';
+                    opegridfgclr="black", facefgclr='black',facebgclr="gold";
+                    break;
+                case 2:
+                    fgclr = 'yellow',scorefgclr="black",cardbgclrs='gold',cardbgclre='GoldenRod',cardfgclr ='black',cardfgswclr='grey',passfgclr='gold',passfgswclr='grey',
+                            opebgclrs='gold',opebgclrm='GoldenRod',opebgclre='Khaki', opefgclr ='black', opesfgclr ='red',opeswclr="gray",
+                            btnfgclr1='black',btnfgclr2='blue',btnfgclr3='blue',btnfgclr4='black',
+                            newbgclr="SandyBrown",resetbgclr="Pink",unsbgclr="SandyBrown",ansbgclr="Pink",
+                            resultfgclr='black',resultbgclr='Wheat';
+                    opegridfgclr="black", facefgclr='black',facebgclr="gold";
+                    break;
+                case 3:
+                    fgclr = 'yellow',scorefgclr="black",cardbgclrs='Tomato',cardbgclre='Red',cardfgclr ='gold',cardfgswclr='grey',passfgclr='gold',passfgswclr='grey',
+                            opebgclrs='DarkRed',opebgclrm='IndianRed',opebgclre='OrangeRed', opefgclr ='black', opesfgclr ='yellow',opeswclr="gray",
+                            btnfgclr1='yellow',btnfgclr2='gold',btnfgclr3='yellow',btnfgclr4='gold',
+                            newbgclr="DarkRed",resetbgclr="OrangeRed",unsbgclr="DarkRed",ansbgclr="OrangeRed",
+                            resultfgclr='black',resultbgclr='Wheat';
+                    opegridfgclr="black", facefgclr='gold',facebgclr="Red";
+                    break;
+                case 4:
+                    fgclr = 'green',scorefgclr="black",cardbgclrs='ForestGreen',cardbgclre='Chartreuse',cardfgclr ='pink',cardfgswclr='grey',passfgclr='gold',passfgswclr='grey',
+                            opebgclrs='ForestGreen',opebgclrm='Chartreuse',opebgclre='green', opefgclr ='gold', opesfgclr ='red',opeswclr="gray",
+                            btnfgclr1='black',btnfgclr2='blue',btnfgclr3='blue',btnfgclr4='black',
+                            newbgclr="ForestGreen",resetbgclr="LightGreen",unsbgclr="ForestGreen",ansbgclr="LightGreen",
+                            resultfgclr='black',resultbgclr='MediumSpringGreen';
+                    opegridfgclr="gold", facefgclr='pink',facebgclr="green";
+                    break;
+                default:
+                    break;
+
+            }
+        }
+
+        function initvarious() {
+            toucharea = 0;
+
+            opr[0] = '＋', opr[1] = '－', opr[2] = '＊', opr[3] = '／';
+            card[0] = card[1] = card[2] = card[3] = 6;
+            card[4] = card[5] = card[6] = card[7] = 6;
+
+            var tmp = getparam("si");
+            if(tmp!=null) {
+                skinmode = tmp;
+            }
+
+            initcardpos();
+        }
+
+        function initcardpos() {
+            cardpos[0] = speb, cardpos[1] = speb, cardpos[2] = speb * 2 + cardw, cardpos[3] = speb;
+            cardpos[4] = speb, cardpos[5] = speb * 2 + cardh, cardpos[6] = speb * 2 + cardw, cardpos[7] = speb * 2 + cardh;
+        }
+
+        function initcantext(context) {
+            context.font = '100px Palation';
+            context.lineWidth = 1.0;
+            context.fillStyle = fgclr;
+
+            CanvasRenderingContext2D.prototype.roundRect = function (x, y, w, h, r) {
+                if (w < 2 * r) r = w / 2;
+                if (h < 2 * r) r = h / 2;
+                this.beginPath();
+                this.moveTo(x+r, y);
+                this.arcTo(x+w, y, x+w, y+h, r);
+                this.arcTo(x+w, y+h, x, y+h, r);
+                this.arcTo(x, y+h, x, y, r);
+                this.arcTo(x, y, x+w, y, r);
+                this.closePath();
+                return this;
+            }
+        }
+
+        function drawscore(canvas, context) {
+            context.clearRect(0, 0, canvas.width, speb);
+
+            context.save();
+            context.font = '50px Palation';
+            context.fillStyle = scorefgclr;
+            var strcore = "Win:" + intright + "  Lose:" + intwrong;
+            context.fillText(strcore, speb, 50);
+            context.strokeText(strcore, speb, 50);
+            context.restore();
+        }
+
+        function drawcardgrounde(canvas,context,x,y,width,height) {
+            context.save();
+            var rGrd =context.createRadialGradient(x+cardw/2, y+cardh/2, 30, x+cardw/2, y+cardh/2, cardh);
+            rGrd.addColorStop(0, cardbgclrs);
+            rGrd.addColorStop(1, cardbgclre);
+            context.fillStyle = rGrd;
+//            context.fillRect(x, y, width, height);
+            context.roundRect(x,y,width,height,20).fill();
+            context.restore();
+        }
+
+        function drawgroudope(canvas, context) {
+            context.save();
+            context.beginPath();
+            /* 指定渐变区域 */
+            var grad  = context.createLinearGradient((cswidth - opewidth) / 2,speb * 2 + cardh * 2 + spes, (cswidth - opewidth) / 2,speb * 2 + cardh * 2 + spes+btnheight);
+            /* 指定几个颜色 */
+            grad.addColorStop(0,opebgclrs);    // 红
+            grad.addColorStop(0.5,opebgclrm); // 绿
+            grad.addColorStop(1,opebgclre);  // 紫
+            /* 将这个渐变设置为fillStyle */
+            context.fillStyle = grad;
+            context.fillRect((cswidth - opewidth) / 2, speb * 2 + cardh * 2 + spes, opewidth, opeheight);
+            context.restore();
+        }
+
+        function drawground(canvas, context) {
+            context.clearRect(0, 0, canvas.width, canvas.height);
+
+            //cardarea
+            drawcardgrounde(canvas,context,cardpos[0], cardpos[1], cardw, cardh);
+            drawcardgrounde(canvas,context,cardpos[2], cardpos[3], cardw, cardh);
+            drawcardgrounde(canvas,context,cardpos[4], cardpos[5], cardw, cardh);
+            drawcardgrounde(canvas,context,cardpos[6], cardpos[7], cardw, cardh);
+
+            //opearea
+            drawgroudope(canvas, context);
+
+            //button
+            drawcirclebutton(context,speb+btnwidth/2,speb * 2 + cardh * 2 + spes * 2 + opeheight+btnheight/2,btnwidth/2,newbgclr);
+            drawcirclebutton(context,speb+btnwidth*3/2,speb * 2 + cardh * 2 + spes * 2 + opeheight+btnheight/2,btnwidth/2,resetbgclr);
+            drawcirclebutton(context,speb+btnwidth*5/2,speb * 2 + cardh * 2 + spes * 2 + opeheight+btnheight/2,btnwidth/2,unsbgclr);
+            drawcirclebutton(context,speb+btnwidth*7/2,speb * 2 + cardh * 2 + spes * 2 + opeheight+btnheight/2,btnwidth/2,ansbgclr);
+
+            //result
+            clearresultarea(canvas,context);
+
+        }
+
+        function drawcirclebutton(context, x, y, radios, colorstr) {
+            context.save();
+            context.fillStyle=colorstr;
+            context.beginPath();
+            context.arc(x,y,radios,0,Math.PI*2,true);
+            context.closePath();
+            context.fill();
+            context.restore();
+        }
+
+        function drawope(canvas, context, pos, color) {
+            context.save();
+            context.fillStyle = color;
+            context.font = '100px Palation Bolder';
+
+            context.shadowColor = opeswclr;
+            context.shadowBlur  = 0;
+            context.shadowOffsetX = 3;
+            context.shadowOffsetY = 1;
+
+
+            context.fillText(opr[pos], (cswidth - opewidth) / 2 + pos * opewidth / 4 + 20, speb * 2 + cardh * 2 + spes + opefont);
+            context.strokeText(opr[pos], (cswidth - opewidth) / 2 + pos * opewidth / 4 + 20, speb * 2 + cardh * 2 + spes + opefont);
+            oprs = opr[pos];
+            context.restore();
+        }
+
+        function drawopeall(index) {
+            for (var i = 0; i < 4; i++) {
+                drawope(cs, cxt, i, opefgclr);
+            }
+            drawope(cs, cxt, index, opesfgclr);
+        }
+
+        function drawbutton(canvas, context) {
+            context.save();
+            var gradient = context.createLinearGradient(0, 0, canvas.width, 0);
+            gradient.addColorStop('0', btnfgclr1);
+            gradient.addColorStop('0.3', btnfgclr2);
+            gradient.addColorStop('0.6', btnfgclr3);
+            gradient.addColorStop('1', btnfgclr4);
+            context.fillStyle = gradient;
+            context.font = '60px Palation';
+
+            context.fillText('new', speb + 20, speb * 2 + cardh * 2 + spes * 3 + opeheight + 20);
+            context.fillText('reset', btnwidth + speb, speb * 2 + cardh * 2 + spes * 3 + opeheight + 20);
+            context.fillText('uns', btnwidth*2 + speb + 30, speb * 2 + cardh * 2 + spes * 3 + opeheight + 20);
+            context.fillText('ans', btnwidth*3 + speb + 30, speb * 2 + cardh * 2 + spes * 3 + opeheight + 20);
+            context.restore();
+        }
+
+        function drawresult(canvas, context, resultstr) {
+            clearresultarea(canvas, context);
+
+            context.save();
+            context.fillStyle = resultfgclr;
+            context.font = '30px Palation';
+
+            if (resultstr != null) {
+                if (resultstr.indexOf("\n") > 0) {
+                    var strret = resultstr.split("\n");
+                    for (var i = 0; i < strret.length; i++) {
+                        context.fillText(strret[i], speb + 20, speb * 2 + cardh * 2 + spes * 3 + opeheight + btnheight + 30 + 30 * i);
+                        context.fillText(strret[i], speb + 20, speb * 2 + cardh * 2 + spes * 3 + opeheight + btnheight + 30 + 30 * i);
+                    }
+                } else {
+                    context.fillText(resultstr, speb + 20, speb * 2 + cardh * 2 + spes * 3 + opeheight + btnheight + 30);
+                    context.fillText(resultstr, speb + 20, speb * 2 + cardh * 2 + spes * 3 + opeheight + btnheight + 30);
+                }
+            }
+            context.restore();
+        }
+
+        function drawunsolution(canvas, context, resultstr) {
+            drawresult(canvas, context, resultstr);
+
+            if(resultstr =="无解") {
+                drawright(canvas,context);
+            }else{
+                drawwrong(canvas,context);
+            }
+            drawscore(canvas,context);
+        }
+
+        function getcardpos(index) {
+            var pos = {x: 0, y: 0};
+            pos.x = cardpos[index * 2];
+            pos.y = cardpos[index * 2 + 1];
+            return pos;
+         }
+
+        function getcardnoposoffx(cardno) {
+            if (cardno < 10) {
+                return 100;
+            } else {
+                return 80;
+            }
+        }
+
+        function drawcard(canvas, context, index, cardno) {
+
+            var pos = getcardpos(index);
+
+            context.save();
+            drawcardgrounde(canvas,context,cardpos[index*2], cardpos[index*2+1], cardw, cardh);
+            drawcardsub(canvas,context,cardno,pos.x,pos.y);
+            context.restore();
+        }
+
+        /*
+            draw card during moving.
+         */
+        function drawcardpos(canvas, context, x, y, index) {
+            context.save();
+            drawcardgrounde(canvas,context,x, y, cardw, cardh);
+            drawcardsub(canvas,context,card[index+4],x,y);
+            context.restore();
+        }
+
+        function drawcardsub(canvas,context,cardno,x, y) {
+            context.fillStyle = cardfgclr;
+            var offx = getcardnoposoffx(cardno);
+            context.font = '100px Palation';
+            context.shadowColor = cardfgswclr;
+            context.shadowBlur  = 0;
+            context.shadowOffsetX = 5;
+            context.shadowOffsetY = 3;
+            context.fillText(cardno, x + offx, y + 160);
+
+        }
+
+        function drawskin(canvas,context) {
+            if(skinmode==0) {
+                setclrmode(Math.floor(Math.random() * 5));
+            }else{
+                setclrmode(skinmode-1);
+            }
+            drawground(canvas, context);
+            drawopeall(0);
+            drawgrid(canvas, context, opewidth / 4);
+            drawbutton(canvas, context);
+            drawscore(canvas,context);
+        }
+
+        function renew(canvas,context) {
+            if(gamestatus == 1) {
+                return;
+            }
+
+            cxt.clearRect(0, speb, canvas.width, speb+cardh*2);
+            drawscore(canvas,context);
+            for (var i = 0; i < 4; i++) {
+                drawcard(canvas, context, i, card[i] = card[i + 4] = Math.floor(Math.random() * 13 + 1));
+            }
+
+            clearresultarea(canvas,context);
+            gamestatus = 1;
+        }
+
+        function clearresultarea(canvas,context) {
+            context.save();
+            context.fillStyle = resultbgclr;
+            context.fillRect(speb, speb * 2 + cardh * 2 + spes * 3 + opeheight + btnheight, cardw * 2 + speb, results);
+            context.restore();
+        }
+
+        function getoprforsend() {
+            var ope = "";
+            for (var i = 0; i < 4; i++) {
+                ope = ope + card[i] + ',';
+            }
+            ope = ope.substring(0, ope.length - 1) + '=';
+            return ope;
+        }
+
+        function answer(isdrawcardarea) {
+            $.get("gameServlet?ope=" + getoprforsend(), function (data, status) {
+                if(!isdrawcardarea) {
+                    drawresult(cs, cxt, data);
+                }else{
+                    drawunsolution(cs, cxt, data);
+                }
+            });
+        }
+
+        function drawgrid(canvas, context, stepx) {
+            context.save();
+            context.strokeStyle = opegridfgclr;
+            context.lineWidth = 0.5;
+
+            for (var i = stepx + 0.5 + (cswidth - opewidth) / 2; i < stepx + 0.5 + (cswidth - opewidth) / 2 + opewidth; i += stepx) {
+                context.beginPath();
+                context.moveTo(i, speb * 2 + cardh * 2 + spes);
+                context.lineTo(i, speb * 2 + cardh * 2 + spes + opeheight);
+                context.stroke();
+            }
+            context.restore();
+        }
+
+        function resetdraw() {
+
+            for(var i=0;i<4;i++) {
+                card[i+4] = card[i];
+            }
+
+            clearcardarea(cs, cxt);
+
+            for(var i=0;i<4;i++) {
+                drawcardpos(cs,cxt,cardpos[i*2],cardpos[i*2+1],i);
+            }
+        }
+
+        function handletouch(canvas, context, x, y) {
+            if(started)
+                return;
+
+            var offset = $(cs).offset(); //- offset.left
+
+            toucharea = gettoucharea(x - offset.left , y);
+            switch (toucharea) {
+                case 1:
+                    renew(canvas,context);
+                    break;
+                case 2:
+                    answer(false);
+                    break;
+                case 3:
+                case 4:
+                case 5:
+                case 6:
+                    drawopeall(toucharea - 3);
+                    break;
+
+                case 7:
+                case 8:
+                case 9:
+                case 10:
+                    startoffX = x-cardpos[(toucharea-7)*2];
+                    startoffY =y-cardpos[(toucharea-7)*2+1];
+                    break;
+                case 11: //reset
+                    resetdraw();
+                    break;
+                case 12: //uns
+                    answer(true);
+                    break;
+            }
+        }
+
+        function gettoucharea(x, y) { //1:renew 2:answer 3:+ 4:- 5:* 6:/ 7 card1 8 card2 9 card3 10 card4 11 reset 12 uns
+            if (x > speb && x < speb + btnwidth && y > speb * 2 + cardh * 2 + spes * 2 + opeheight && y < speb * 2 + cardh * 2 + spes * 2 + opeheight + btnheight) {
+                return 1;
+            }
+
+            if (x > speb + btnwidth * 3 && x < speb + btnwidth * 4 && y > speb * 2 + cardh * 2 + spes * 2 + opeheight && y < speb * 2 + cardh * 2 + spes * 2 + opeheight + btnheight) {
+                return 2;
+            }
+
+            if (gamestatus == 1 && x > speb + btnwidth && x < speb + btnwidth * 2 && y > speb * 2 + cardh * 2 + spes * 2 + opeheight && y < speb * 2 + cardh * 2 + spes * 2 + opeheight + btnheight) {
+                return 11;
+            }
+
+            if (gamestatus == 1 && x > speb + btnwidth * 2 && x < speb + btnwidth * 3 && y > speb * 2 + cardh * 2 + spes * 2 + opeheight && y < speb * 2 + cardh * 2 + spes * 2 + opeheight + btnheight) {
+                return 12;
+            }
+
+            if (y > speb * 2 + cardh * 2 + spes && y < speb * 2 + cardh * 2 + spes + opeheight) {
+                if (x > (cswidth - opewidth) / 2 && x < (cswidth - opewidth) / 2 + opewidth / 4) {
+                    return 3;
+                } else if (x > (cswidth - opewidth) / 2 + opewidth / 4 && x < (cswidth - opewidth) / 2 + opewidth / 2) {
+                    return 4;
+                } else if (x > (cswidth - opewidth) / 2 + opewidth / 2 && x < (cswidth - opewidth) / 2 + opewidth * 3 / 4) {
+                    return 5;
+                } else if (x > (cswidth - opewidth) / 2 + opewidth * 3 / 4 && x < (cswidth - opewidth) / 2 + opewidth) {
+                    return 6;
+                }
+            }
+
+            if(gamestatus == 1 && card[4]>0 && (x > cardpos[0]) && (x< (cardpos[0]+cardw)) && (y>cardpos[1]) && (y<cardpos[1]+cardh)) {
+                return 7;
+            }
+
+            if(gamestatus == 1 && card[5]>0 && (x > cardpos[2]) && (x< (cardpos[2]+cardw)) && (y>cardpos[3]) && (y<cardpos[3]+cardh)) {
+                return 8;
+            }
+
+            if(gamestatus == 1 && card[6]>0 && (x > cardpos[4]) && (x< (cardpos[4]+cardw)) && (y>cardpos[5]) && (y<cardpos[5]+cardh)) {
+                return 9;
+            }
+
+            if(gamestatus == 1 && card[7]>0 && (x > cardpos[6]) && (x< (cardpos[6]+cardw)) && (y>cardpos[7]) && (y<cardpos[7]+cardh)) {
+                return 10;
+            }
+
+            return -1;
+
+        }
+
+        //touchstart事件
+        function touchSatrtFunc(evt) {
+            try {
+                evt.preventDefault(); //阻止触摸时浏览器的缩放、滚动条滚动等
+                var touch = evt.touches[0]; //获取第一个触点
+                var x = Number(touch.pageX); //页面触点X坐标
+                var y = Number(touch.pageY); //页面触点Y坐标
+
+                //记录触点初始位置
+                handletouch(cs, cxt, x, y);
+
+                if(toucharea>=7 && toucharea<=10) {
+                    touchobj = touch.identifier;
+                    started = true;
+                }
+            } catch (e) {
+                alert('touchSatrtFunc：' + e.message);
+            }
+        }
+
+        //touchmove事件，这个事件无法获取坐标
+        function touchMoveFunc(evt) {
+            try {
+                evt.preventDefault(); //阻止触摸时浏览器的缩放、滚动条滚动等
+                var touch = evt.touches[0]; //获取第一个触点
+                var x = Number(touch.pageX); //页面触点X坐标
+                var y = Number(touch.pageY); //页面触点Y坐标
+                var loc = getPointOnCanvas(cs, x, y);
+                if (started) {
+                    drawmoving(cs, cxt, loc);
+                }
+
+            } catch (e) {
+                alert('touchMoveFunc：' + e.message);
+            }
+        }
+
+        //touchend事件
+        function touchEndFunc(evt)  {
+            try {
+                evt.preventDefault(); //阻止触摸时浏览器的缩放、滚动条滚动等
+                var touch = evt.changedTouches[0]; //获取第一个触点
+                var x = Number(touch.pageX); //页面触点X坐标
+                var y = Number(touch.pageY); //页面触点Y坐标
+                var loc = getPointOnCanvas(cs, x, y);
+
+                if (started) {
+                    if(touchobj == touch.identifier) {
+                        drawup(cs, cxt, loc);
+                    }
+                }
+            } catch (e) {
+                alert('touchEndFunc：' + e.message);
+            }
+        }
+
+        function doMouseDown(event) {
+            var x = event.pageX;
+            var y = event.pageY;
+            var canvas = event.target;
+            var loc = getPointOnCanvas(canvas, x, y);
+            var offset = $(cs).offset();
+            handletouch(canvas,cxt,loc.x+offset.left,loc.y);
+            if(toucharea>=7 && toucharea<=10) {
+                started = true;
+            }
+        }
+
+        function clearcardarea(canvas, context) {
+            context.clearRect(0, 0, canvas.width, speb*2+cardh*2);
+            drawscore(canvas,context);
+        }
+
+        function drawright(canvas, context) {
+            intsuc++;
+            var intseconds = 600;
+
+            context.clearRect(0, 0, canvas.width, speb*2+cardh*2);
+            context.save();
+
+            if(intsuc >0 && intsuc % 5 == 0) {
+                context.fillStyle = passfgclr;
+                context.font = '120px Palation';
+                context.shadowColor = passfgswclr;
+                context.shadowBlur  = 1;
+                context.shadowOffsetX = 4;
+                context.shadowOffsetY = 2;
+                var strshow = "Yi! Pass " + intsuc + "!";
+                context.fillText(strshow,canvas.width/6 , speb+cardh);
+                intseconds = 2000;
+
+            }else{
+                drawcirclebutton(context, canvas.width/2,speb*3/2+cardh,cardw+speb/2,facebgclr);
+
+                context.strokeStyle = facefgclr;
+                context.lineWidth = 10;
+                // 画嘴巴，这是一个半圆，因为是下半圆，所以要顺时针画
+                context.beginPath();
+                context.arc(canvas.width/2, speb*3/2+cardh*4/3, cardw/2, Math.PI/4, Math.PI*3/4, false);
+                context.stroke();
+                context.closePath();
+
+                // 画右眼，这是一个填充圆，使用 fill() 方法
+                context.beginPath();
+                context.arc(canvas.width/3, speb+cardh, cardh/4, 0, 2*Math.PI, false);
+                context.fill();
+                context.closePath();
+
+                //  模仿第三步，画左眼
+                context.beginPath();
+                context.arc(canvas.width*2/3, speb+cardh, cardh/4, 0, 2*Math.PI, false);
+                context.fill();
+                context.closePath();
+            }
+
+            context.restore();
+            gamestatus = 0;
+            intright=intright+1;
+            intclock = self.setInterval("clock()",intseconds);
+        }
+
+        function clock() {
+            var inttmp =window.clearInterval(intclock);
+            drawskin(cs,cxt);
+            renew(cs,cxt);
+        }
+
+        function drawwrong(canvas, context) {
+            intsuc = 0;
+            context.clearRect(0, 0, canvas.width, speb*2+cardh*2);
+            context.save();
+
+            drawcirclebutton(context, canvas.width/2,speb*3/2+cardh,cardw+speb/2,facebgclr);
+
+            context.strokeStyle = facefgclr;
+            context.lineWidth = 10;
+            // 画嘴巴，这是一个半圆，因为是下半圆，所以要顺时针画
+            context.beginPath();
+            context.arc(canvas.width/2, speb*3/2+cardh*2, cardw/2, Math.PI*5/4, Math.PI*7/4, false);
+            context.stroke();
+            context.closePath();
+
+            // 画右眼，这是一个填充圆，使用 fill() 方法
+            context.beginPath();
+            context.arc(canvas.width/3, speb+cardh, cardh/4, 0, 2*Math.PI, false);
+            context.fill();
+            context.closePath();
+
+            // 画右眼，这是一个填充圆，使用 fill() 方法
+            context.beginPath();
+            context.arc(canvas.width/3-cardw/4, speb+cardh*5/4, cardh/16, 0, 2*Math.PI, false);
+            context.fill();
+            context.closePath();
+
+            //  模仿第三步，画左眼
+            context.beginPath();
+            context.arc(canvas.width*2/3, speb+cardh, cardh/4, 0, 2*Math.PI, false);
+            context.fill();
+            context.closePath();
+
+            //  模仿第三步，画左眼
+            context.beginPath();
+            context.arc(canvas.width*2/3+cardw/4, speb+cardh*5/4, cardh/16, 0, 2*Math.PI, false);
+            context.fill();
+            context.closePath();
+
+            context.restore();
+
+            gamestatus = 0;
+            intwrong=intwrong+1;
+        }
+
+        function drawcardgroundup(canvas, context) {
+            context.clearRect(0, 0, canvas.width, speb*2+cardh*2);
+            drawscore(canvas,context);
+
+            var blnlast = getlast();
+
+            if(blnlast) {
+                if(card[4] == 24 || card[5]==24 || card[6]==24 || card[7]==24) {
+                    drawright(canvas,context);
+                }else{
+                    drawwrong(canvas,context);
+                }
+                drawscore(canvas,context);
+            }
+            return blnlast;
+        }
+
+        function getlast() {
+            var intresult = 0;
+            if(card[4]<=0) {
+                intresult = intresult + 1;
+            }
+
+            if(card[5]<=0) {
+                intresult = intresult + 1;
+            }
+
+            if(card[6]<=0) {
+                intresult = intresult + 1;
+            }
+
+            if(card[7]<=0) {
+                intresult = intresult + 1;
+            }
+
+            return intresult>=3;
+        }
+
+        function doMouseMove(event) {
+            var x = event.pageX;
+            var y = event.pageY;
+            var canvas = event.target;
+            var loc = getPointOnCanvas(canvas, x, y);
+            if (started) {
+                var offset = $(cs).offset();
+                loc.x = loc.x - offset.left;
+                drawmoving(cs, cxt, loc);
+            }
+        }
+
+        function drawmoving(canvas, context, loc) {
+            clearcardarea(canvas, context);
+
+            for(var i=0;i<4;i++) {
+                if(toucharea!=i+7 && card[i+4]>0) {
+                    drawcardpos(canvas,context,cardpos[i*2],cardpos[i*2+1],i);
+                }
+            }
+
+            var offset = $(cs).offset();
+
+            if(loc.x-startoffX< 0) {
+                loc.x =startoffX;
+            }else if(loc.x-startoffX + offset.left >cswidth-cardw) {
+                loc.x = cswidth-cardw+startoffX - offset.left;
+            }
+
+            if(loc.y-startoffY<0) {
+                loc.y = startoffY;
+            }else if(loc.y-startoffY>speb*2+cardh) {
+                loc.y = speb*2+cardh+startoffY;
+            }
+
+
+            drawcardpos(canvas,context,loc.x-startoffX + offset.left,loc.y-startoffY,toucharea-7);
+        }
+
+        function doMouseUp(event) {
+            console.log("mouse up now");
+            var x = event.pageX;
+            var y = event.pageY;
+            var canvas = event.target;
+            var loc = getPointOnCanvas(canvas, x, y);
+
+            if (started) {
+                drawup(canvas, cxt, loc);
+            }
+        }
+
+        function drawup(convas, context, loc) {
+            var opearea = [];
+
+            started = false;
+
+            var offset = $(cs).offset();
+
+            loc.x = loc.x-startoffX + offset.left + cardw / 2;
+            loc.y = loc.y-startoffY + cardh / 2;
+
+            for(var i=0;i<4;i++) {
+                if(toucharea!=i+7 && card[i+4]>0) {
+                    if(isoverarea(loc,i)) {
+                        opearea.push(i);
+                    }
+                }
+            }
+
+            if(opearea.length > 0) {
+                var midnum = card[toucharea-7+4];
+
+                for(var i=0; i<opearea.length; i++) {
+                    midnum = getresultopr(midnum, card[opearea[i]+ 4],oprs);
+
+                    card[opearea[i]+ 4] = -1;
+                }
+                card[opearea[0]+ 4] = midnum;
+                card[toucharea-7+4] = -1;
+            }
+
+            if(!drawcardgroundup(cs, cxt)) {
+                for(var i=0;i<4;i++) {
+                    if(card[i+4]>0) {
+                        drawcardpos(convas,context,cardpos[i*2],cardpos[i*2+1],i);
+                    }
+                }
+            }
+
+            toucharea = -1;
+
+        }
+
+        function getresultopr(num1, num2, oprst) {
+            switch (oprst) {
+                case "＋":
+                    return num1+num2;
+                    break;
+                case "－":
+                    return Math.abs(num1-num2);
+                    break
+                case "＊":
+                    return num1 * num2;
+                    break;
+                case "／":
+                    return num1 / num2;
+                    break;
+            }
+        }
+
+        function isoverarea(loc, index) {
+            var x = cardpos[index*2] + cardw/2, y= cardpos[index*2+1] + cardh/2;
+            return (Math.abs(loc.x - x) < cardw && Math.abs(loc.y-y)<cardh);
+        }
+
+        function getPointOnCanvas(canvas, x, y) {
+            var bbox = canvas.getBoundingClientRect();
+            return {
+                x: x - bbox.left * (canvas.width / bbox.width),
+                y: y - bbox.top * (canvas.height / bbox.height)
+            };
+        }
+
+        //绑定事件
+        function bindEvent() {
+            cs.addEventListener('touchstart', touchSatrtFunc, false);
+            cs.addEventListener('touchmove', touchMoveFunc, false);
+            cs.addEventListener('touchend', touchEndFunc, false);
+
+            cs.addEventListener("mousedown", doMouseDown, false);
+            cs.addEventListener('mousemove', doMouseMove, false);
+            cs.addEventListener('mouseup', doMouseUp, false);
+
+        }
+
+        //判断是否支持触摸事件
+        function isTouchDevice() {
+            //document.getElementById("version").innerHTML = navigator.appVersion;
+            try {
+                document.createEvent("TouchEvent");
+                bindEvent(); //绑定事件
+            } catch (e) {
+                alert("不支持TouchEvent事件！" + e.message);
+            }
+        }
+
+    </script>
+</head>
+<body>
+
+<div style="width:800px;margin:0 auto;">
+<canvas id="myCanvas" width="800px" height="1400px" style="border:none;">
+    Your browser does not support the canvas element.
+</canvas>
+</div>
+
+<script type="text/javascript">
+    initvarious();
+    cs = document.getElementById("myCanvas");
+    cxt = cs.getContext("2d");
+
+    initcantext(cxt);
+    drawskin(cs, cxt);
+    renew(cs,cxt);
+    drawscore(cs,cxt);
+
+    isTouchDevice();
+
+</script>
+
+</body>
+</html>
